@@ -1141,6 +1141,24 @@ int bacapp_snprintf_value(
                             len = 0;
                         }
                     }
+                } else if (characterstring_encoding(&value->type.Character_String) ==
+                    CHARACTER_UCS2) {
+                    while (len > 0) {
+                        wc = (unsigned short)char_str[0] << 8 | (unsigned short)char_str[1];
+                        if (!iswprint(wc)) {
+                            wc = L'.';
+                        }
+                        snprintf(temp_str, sizeof(temp_str), "%lc", wc);
+                        if (!append_str(&p_str, &rem_str_len, temp_str)) {
+                            break;
+                        }
+                        if (len > 2) {
+                            len -= 2;
+                            char_str += wclen;
+                        } else {
+                            len = 0;
+                        }
+                    }
                 } else
                 #endif
                 {
@@ -1453,7 +1471,7 @@ bool bacapp_print_value(
 {
     char *str;
     bool retval = false;
-    size_t str_len = 32;
+    size_t str_len = 64;
     int status;
 
     while (true) {
